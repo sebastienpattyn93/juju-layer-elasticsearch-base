@@ -5,5 +5,5 @@ options:
   apt:
     packages:
       - 'elasticsearch'
-      - '-y'
+      - '-y --allow-unauthenticated'
 repo: "https://github.com/jamesbeedy/juju-layer-elasticsearch-base"
