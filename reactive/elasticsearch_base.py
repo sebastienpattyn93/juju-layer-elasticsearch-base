@@ -1,20 +1,23 @@
 import os, subprocess
 
 from charms.reactive import when, when_not, set_state
+
 from charmhelpers.core.hookenv import status_set
 from charmhelpers.core.host import (
     service_restart,
     service_running,
     service_start
 )
+
 from charms.layer.elasticsearch_base import is_container
 
 
 @when('java.ready')
 @when_not('elasticsearch.installed')
-def installed_elasticsearch(java):
+def install_elasticsearch(java):
     """Check for container, install elasticsearch
     """
+
     if is_container():
         os.environ['ES_SKIP_SET_KERNEL_PARAMETERS'] = "true"
     subprocess.call(['apt', 'install', 'elasticsearch', '-y',
@@ -24,9 +27,9 @@ def installed_elasticsearch(java):
 
 @when('elasticsearch.installed')
 @when_not('elasticsearch.running')
-def start_elasticsearch():
-    """Ensure to start elasticsearch whenever
-    the 'elasticsearch.started' state is not set
+def ensure_elasticsearch_running():
+    """Ensure to start elasticsearch when elasticsearch
+    is installed,but the 'elasticsearch.running' state is not set
     """
 
     if service_running('elasticsearch'):
@@ -37,5 +40,7 @@ def start_elasticsearch():
 
 
 @when('elasticsearch.installed', 'elasticsearch.running')
-def set_es_installed():
+def set_ready_status():
+    """Set ready status
+    """
     status_set('active', 'Elasticsearch ready')
