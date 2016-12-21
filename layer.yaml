@@ -4,5 +4,6 @@ includes:
 options:
   apt:
     packages:
-      - 'elasticsearch -y'
+      - 'elasticsearch'
+      - '-y'
 repo: "https://github.com/jamesbeedy/juju-layer-elasticsearch-base"
