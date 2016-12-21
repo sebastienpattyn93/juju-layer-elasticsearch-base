@@ -1,0 +1,14 @@
+name: elasticsearch
+summary: Open Source, Distributed, RESTful Search Engine
+maintainer: James Beedy <jamesbeedy@gmail.com>
+description: |
+  Elasticsearch is a search server based on Lucene. It provides a
+  distributed, multitenant-capable full-text search engine with a
+  RESTful web interface and schema-free JSON documents.  This package
+  contains the infrastructure needed to an ElasticSearch node.
+tags:
+  - elasticsearch
+  - misc
+series:
+- xenial
+subordinate: false
