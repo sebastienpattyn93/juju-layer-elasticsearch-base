@@ -1,10 +1,5 @@
 includes:
   - 'layer:basic'
+  - 'interface:java'
   - 'layer:apt'
-options:
-  apt:
-    packages:
-      - 'elasticsearch'
-      - '-y'
-      - '--allow-unauthenticated'
 repo: "https://github.com/jamesbeedy/juju-layer-elasticsearch-base"

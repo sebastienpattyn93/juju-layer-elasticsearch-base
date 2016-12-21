@@ -12,3 +12,6 @@ tags:
 series:
 - xenial
 subordinate: false
+provides:
+  java:
+    interface: java
