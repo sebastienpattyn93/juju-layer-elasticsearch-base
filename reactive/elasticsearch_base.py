@@ -47,10 +47,13 @@ def ensure_elasticsearch_running():
 
 
 @when('elasticsearch.installed', 'elasticsearch.running')
-def set_ready_status():
-    """Set ready status
+@when_not('elasticsearch.base.available')
+def set_elasticsearch_base_available():
+    """Set ready status, and 'elasticsearch.base.available'
+    state
     """
     status_set('active', 'Elasticsearch ready')
+    set_state('elasticsearch.base.available')
 
 
 @when('elasticsearch.problems')
