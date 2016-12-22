@@ -60,7 +60,7 @@ def get_set_elasticsearch_version():
     (possibly there is a bettter way)
 
     Once we can curl localhost, we also know elasticsearch
-    is functioning correctly.
+    has started.
     """
     # Poor mans hack here, we will have to look at a better way to
     # get the version
