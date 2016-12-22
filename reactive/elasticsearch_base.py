@@ -59,11 +59,8 @@ def ensure_elasticsearch_running():
 @when('elasticsearch.installed', 'elasticsearch.running')
 @when_not('elasticsearch.version.set')
 def get_set_elasticsearch_version():
-    """Curl to localhost to get version
-    (possibly there is a bettter way)
-
-    Once we can curl localhost, we also know elasticsearch
-    has started.
+    """Wait until we have the version to confirm
+    elasticsearch has started
     """
 
     status_set('maintenance', 'Waiting for Elasticsearch to start')
