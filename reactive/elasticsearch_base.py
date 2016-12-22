@@ -1,7 +1,4 @@
 import os
-import json
-import polling
-import requests
 import subprocess as sp
 
 from charms.reactive import when, when_not, set_state
