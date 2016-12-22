@@ -2,6 +2,18 @@ import json
 import requests
 from time import sleep
 import subprocess as sp
+from charmhelpers.core.hookenv import status_set, log
+from charms.reactive import set_state
+
+
+class ElasticsearchError(Exception):
+    """Base class for exceptions in this module."""
+    pass
+
+
+class ElasticsearchApiError(ElasticsearchError):
+    def __init__(self, message):
+        self.message = message
 
 
 def is_container():
@@ -19,17 +31,24 @@ def es_version():
 
     # Poll until elasticsearch has started, otherwise the curl
     # to get the version will error out
-    success = False
-    while not success:
-        try:
-            status_code = requests.get('http://localhost:9200').status_code
-            if status_code == 200:
-                success = True
-        except requests.exceptions.ConnectionError:
-            sleep(1)
-    es_curl_data = sp.check_output(["curl", "http://localhost:9200"])
-    es_vers_str = es_curl_data.strip().decode()
-    json_acceptable_data = es_vers_str.replace("\n","").replace("'","\"")
-    version = json.loads(json_acceptable_data)['version']['number']
-    return version
- 
+    status_code = 0
+    counter = 0
+    try:
+        while counter < 100:
+            while not status_code == 200:
+                try:
+                    counter += 1
+                    log("Polling for elasticsearch api: %d" % counter)
+                    req = requests.get('http://localhost:9200')
+                    status_code = req.status_code
+                    es_curl_data = req.text
+                    es_vers_str = es_curl_data.strip()
+                    json_acceptable_data = es_vers_str.replace("\n","").replace("'","\"")
+                    return json.loads(json_acceptable_data)['version']['number']
+                except requests.exceptions.ConnectionError:
+                    sleep(1)
+        log("Elasticsearch needs debugging, cannot access api")
+        status_set('blocked', "Cannot access elasticsearch api")
+        raise ElasticsearchApiError("%d seconds waiting for es api to no avail" % counter)
+    except ElasticsearchApiError as e:
+        log(e.message)
