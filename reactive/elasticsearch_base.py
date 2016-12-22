@@ -65,7 +65,7 @@ def get_set_elasticsearch_version():
     # Poor mans hack here, we will have to look at a better way to
     # get the version
 
-    # Poll until elasticsearch has started, otherwise the curl will
+    # Poll until elasticsearch has started, otherwise the curl
     # to get the version will error out
     status_set('maintenance', 'Waiting for Elasticsearch to start')
     polling.poll(
@@ -86,7 +86,7 @@ def get_set_elasticsearch_version():
 @when('elasticsearch.version.set')
 @when_not('elasticsearch.base.available')
 def set_elasticsearch_base_available():
-    """Set ready status, and 'elasticsearch.base.available'
+    """Set active status, and 'elasticsearch.base.available'
     state
     """
     status_set('active', 'Elasticsearch base available')
