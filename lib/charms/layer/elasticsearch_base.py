@@ -1,6 +1,6 @@
 import json
-import polling
 import requests
+from time import sleep
 import subprocess as sp
 
 
@@ -19,13 +19,14 @@ def es_version():
 
     # Poll until elasticsearch has started, otherwise the curl
     # to get the version will error out
- 
-    polling.poll(
-        lambda: requests.get('http://localhost:9200').status_code == 200,
-        step=1,
-        ignore_exceptions=(requests.exceptions.ConnectionError,),
-        poll_forever=True
-    )
+    success = False
+    while not success:
+        try:
+            status_code = requests.get('http://localhost:9200').status_code
+            if status_code == 200:
+                success = True
+        except requests.exceptions.ConnectionError:
+            sleep(1)
     es_curl_data = sp.check_output(["curl", "http://localhost:9200"])
     es_vers_str = es_curl_data.strip().decode()
     json_acceptable_data = es_vers_str.replace("\n","").replace("'","\"")
