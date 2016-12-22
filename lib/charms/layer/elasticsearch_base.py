@@ -37,6 +37,8 @@ def es_version():
         while counter < 100:
             while not status_code == 200:
                 try:
+                    counter += 1
+                    log("Polling for elasticsearch api: %d" % counter)
                     req = requests.get('http://localhost:9200')
                     status_code = req.status_code
                     es_curl_data = req.text
@@ -45,8 +47,6 @@ def es_version():
                     return json.loads(json_acceptable_data)['version']['number']
                 except requests.exceptions.ConnectionError:
                     sleep(1)
-            counter += 1
-            log("Polling for elasticsearch api: %d" % counter)
         log("Elasticsearch needs debugging, cannot access api")
         status_set('blocked', "Cannot access elasticsearch api")
         raise ElasticsearchApiError("%d seconds waiting for es api to no avail" % counter)
