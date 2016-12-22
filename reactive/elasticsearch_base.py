@@ -1,8 +1,12 @@
-import os, subprocess
+import os
+import subprocess as sp
 
 from charms.reactive import when, when_not, set_state
 
-from charmhelpers.core.hookenv import status_set
+from charmhelpers.core.hookenv import (
+    status_set,
+    application_version_set
+)
 from charmhelpers.core.host import (
     service_running,
     service_start
@@ -24,8 +28,8 @@ def install_elasticsearch(java):
     # https://github.com/elastic/elasticsearch/commit/32df032c5944326e351a7910a877d1992563f791
     if is_container():
         os.environ['ES_SKIP_SET_KERNEL_PARAMETERS'] = "true"
-    subprocess.call(['apt', 'install', 'elasticsearch', '-y',
-                     '--allow-unauthenticated'], shell=False)
+    sp.call(['apt', 'install', 'elasticsearch', '-y',
+             '--allow-unauthenticated'], shell=False)
     set_state('elasticsearch.installed')
 
 
@@ -47,6 +51,25 @@ def ensure_elasticsearch_running():
 
 
 @when('elasticsearch.installed', 'elasticsearch.running')
+@when_not('elasticsearch.version.set')
+def get_set_elasticsearch_version():
+    """Curl to localhost to get version
+    (possibly there is a bettter way)
+
+    Once we can curl localhost, we also know elasticsearch
+    is functioning correctly.
+    """
+    # Poor mans hack here, we will have to look at a better way to
+    # get the version
+    es_curl_data = sp.check_output(["curl", "http://localhost:9200"])
+    es_vers_str = es_curl_data.strip().decode()
+    json_acceptable_data = es_vers_str.replace("\n","").replace("'","\"")
+    es_version = json.loads(json_acceptable_data)['version']['number']
+    application_version_set(es_version)
+    set_state('elasticsearch.version.set')
+
+
+@when('elasticsearch.version.set')
 @when_not('elasticsearch.base.available')
 def set_elasticsearch_base_available():
     """Set ready status, and 'elasticsearch.base.available'
