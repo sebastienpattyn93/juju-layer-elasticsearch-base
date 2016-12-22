@@ -15,7 +15,10 @@ from charmhelpers.core.host import (
     service_start
 )
 
-from charms.layer.elasticsearch_base import is_container
+from charms.layer.elasticsearch_base import (
+    is_container,
+    es_version
+)
 
 
 @when('java.ready')
@@ -62,23 +65,9 @@ def get_set_elasticsearch_version():
     Once we can curl localhost, we also know elasticsearch
     has started.
     """
-    # Poor mans hack here, we will have to look at a better way to
-    # get the version
 
-    # Poll until elasticsearch has started, otherwise the curl
-    # to get the version will error out
     status_set('maintenance', 'Waiting for Elasticsearch to start')
-    polling.poll(
-        lambda: requests.get('http://localhost:9200').status_code == 200,
-        step=1,
-        ignore_exceptions=(requests.exceptions.ConnectionError,),
-        poll_forever=True
-    )
-    es_curl_data = sp.check_output(["curl", "http://localhost:9200"])
-    es_vers_str = es_curl_data.strip().decode()
-    json_acceptable_data = es_vers_str.replace("\n","").replace("'","\"")
-    es_version = json.loads(json_acceptable_data)['version']['number']
-    application_version_set(es_version)
+    application_version_set(es_version())
     status_set('active', 'Elasticsearch started')
     set_state('elasticsearch.version.set')
 

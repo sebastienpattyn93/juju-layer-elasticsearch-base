@@ -1,10 +1,34 @@
-from subprocess import check_output
+import json
+import polling
+import requests
+import subprocess as sp
 
 
 def is_container():
     """Return True if system is running inside a container"""
-    virt_type = check_output('systemd-detect-virt').decode().strip()
+    virt_type = sp.check_output('systemd-detect-virt').decode().strip()
     if virt_type == 'lxc':
         return True
     else:
         return False
+
+
+def es_version():
+    """Return elasticsearch version
+    """
+
+    # Poll until elasticsearch has started, otherwise the curl
+    # to get the version will error out
+ 
+    polling.poll(
+        lambda: requests.get('http://localhost:9200').status_code == 200,
+        step=1,
+        ignore_exceptions=(requests.exceptions.ConnectionError,),
+        poll_forever=True
+    )
+    es_curl_data = sp.check_output(["curl", "http://localhost:9200"])
+    es_vers_str = es_curl_data.strip().decode()
+    json_acceptable_data = es_vers_str.replace("\n","").replace("'","\"")
+    version = json.loads(json_acceptable_data)['version']['number']
+    return version
+ 
