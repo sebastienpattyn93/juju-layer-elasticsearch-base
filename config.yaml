@@ -25,7 +25,7 @@ options:
       - |
           -----BEGIN PGP PUBLIC KEY BLOCK-----
           Version: GnuPG v2.0.14 (GNU/Linux)
-          
+
           mQENBFI3HsoBCADXDtbNJnxbPqB1vDNtCsqhe49vFYsZN9IOZsZXgp7aHjh6CJBD
           A+bGFOwyhbd7at35jQjWAw1O3cfYsKAmFy+Ar3LHCMkV3oZspJACTIgCrwnkic/9
           CUliQe324qvObU2QRtP4Fl0zWcfb/S8UYzWXWIFuJqMvE9MaRY1bwUBvzoqavLGZ
@@ -54,3 +54,20 @@ options:
           qPDlGRlOgVTd9xUfHFkzB52c70E=
           =92oX
           -----END PGP PUBLIC KEY BLOCK-----
+  firewall_enabled:
+    description: |
+      this option will enable or disable the ufw. By default this is set to
+      'false' since the firewall is never enabled when a machine or container
+      is created with juju. Set to 'true' to enable firewall. Once enabled
+      rules will be added when another charm has a relation with elasticsearch.
+      This charm will be able to access elasticsearch on port 9200, while
+      all the other traffice to that port will be blocked. Enabling the firewall
+      will also allow port 22 from anywhere.
+    type: boolean
+    default: false
+  cluster_name:
+    description: |
+      This sets the elasticsearch cluster name. This name is then added to the
+      elasticsearch.yml file
+    type: string
+    default: "elasticsearch"

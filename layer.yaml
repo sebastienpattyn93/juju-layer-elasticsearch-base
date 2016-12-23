@@ -1,5 +1,6 @@
 includes:
   - 'layer:basic'
-  - 'interface:java'
   - 'layer:apt'
+  - 'interface:java'
+  - 'interface:elasticsearch'
 repo: "https://github.com/jamesbeedy/juju-layer-elasticsearch-base"
