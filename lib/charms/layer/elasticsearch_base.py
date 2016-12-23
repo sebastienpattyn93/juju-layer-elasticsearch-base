@@ -1,9 +1,10 @@
+#!/usr/bin/env python3
+# pylint: disable=c0111,c0103,c0301
 import json
-import requests
 from time import sleep
 import subprocess as sp
+import requests
 from charmhelpers.core.hookenv import status_set, log
-from charms.reactive import set_state
 
 
 class ElasticsearchError(Exception):
@@ -34,19 +35,18 @@ def es_version():
     status_code = 0
     counter = 0
     try:
-        while counter < 100:
-            while not status_code == 200:
-                try:
-                    counter += 1
-                    log("Polling for elasticsearch api: %d" % counter)
-                    req = requests.get('http://localhost:9200')
-                    status_code = req.status_code
-                    es_curl_data = req.text
-                    es_vers_str = es_curl_data.strip()
-                    json_acceptable_data = es_vers_str.replace("\n","").replace("'","\"")
-                    return json.loads(json_acceptable_data)['version']['number']
-                except requests.exceptions.ConnectionError:
-                    sleep(1)
+        while status_code != 200 and counter < 100:
+            try:
+                counter += 1
+                log("Polling for elasticsearch api: %d" % counter)
+                req = requests.get('http://localhost:9200')
+                status_code = req.status_code
+                es_curl_data = req.text
+                es_vers_str = es_curl_data.strip()
+                json_acceptable_data = es_vers_str.replace("\n", "").replace("'", "\"")
+                return json.loads(json_acceptable_data)['version']['number']
+            except requests.exceptions.ConnectionError:
+                sleep(1)
         log("Elasticsearch needs debugging, cannot access api")
         status_set('blocked', "Cannot access elasticsearch api")
         raise ElasticsearchApiError("%d seconds waiting for es api to no avail" % counter)
