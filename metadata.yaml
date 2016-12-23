@@ -13,5 +13,7 @@ series:
 - xenial
 subordinate: false
 provides:
+  client:
+    interface: elasticsearch
   java:
     interface: java
