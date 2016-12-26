@@ -4,3 +4,8 @@ includes:
   - 'interface:java'
   - 'interface:elasticsearch'
 repo: "https://github.com/jamesbeedy/juju-layer-elasticsearch-base"
+options:
+  apt:
+    packages:
+       - 'python3-pip'
+       - 'openjdk-8-jre-headless'
