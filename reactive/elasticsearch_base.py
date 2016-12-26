@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 # pylint: disable=c0111,c0103,c0301
+import os
 import subprocess as sp
+
 
 from subprocess import CalledProcessError
 from jujubigdata import utils
+from charms import apt #pylint: disable=E0611
 from charms.reactive import (
     when,
     when_not,
@@ -28,6 +31,7 @@ from charms.layer.elasticsearch_base import (#pylint: disable=E0611,E0401,C0412
 )
 
 #@when('java.ready')
+@when('apt.installed.openjdk-8-jre-headless')
 @when_not('elasticsearch.installed')
 def install_elasticsearch():
     """Check for container, install elasticsearch
@@ -42,32 +46,31 @@ def install_elasticsearch():
     if is_container():
         with utils.environment_edit_in_place('/etc/environment') as env:
             env['ES_SKIP_SET_KERNEL_PARAMETERS'] = 'true'
-        sp.check_call(['export', 'ES_SKIP_SET_KERNEL_PARAMETERS=true'], shell=True)
-    sp.call(['apt', 'install', 'elasticsearch', '-y',
-             '--allow-unauthenticated'], shell=False)
-    set_state('elasticsearch.installed')
+        os.environ['ES_SKIP_SET_KERNEL_PARAMETERS'] = "true"
+        sp.check_call(['. /etc/environment'], shell=True)
+    apt.queue_install(['elasticsearch'])
 
-@when('elasticsearch.installed')
-@when_not('elasticsearch.configured')
+@when('apt.installed.elasticsearch')
+@when_not('elasticsearch.installed')
 def configure_elasticsearch():
     status_set('maintenance', 'Configuring elasticsearch')
     # check if Firewall has to be enabled
     init_fw()
-    set_state('elasticsearch.configured')
+    set_state('elasticsearch.installed')
     restart()
 
-@when('elasticsearch.configured')
+@when('elasticsearch.installed')
 @when_file_changed('/etc/elasticsearch/elasticsearch.yml')
 def restart():
     try:
         status_set('maintenance', 'Restarting elasticsearch')
         service_restart('elasticsearch')
-        set_state('elasticsearch.ready')
+        set_state('elasticsearch.configured')
         status_set('active', 'Ready')
     except CalledProcessError:
         status_set('error', 'Could not restart elasticsearch')
 
-@when('elasticsearch.ready')
+@when('elasticsearch.configured')
 @when_not('elasticsearch.running')
 def ensure_elasticsearch_running():
     """Ensure elasticsearch is started
@@ -85,7 +88,7 @@ def ensure_elasticsearch_running():
         set_state('elasticsearch.problems')
 
 
-@when('elasticsearch.ready', 'elasticsearch.running')
+@when('elasticsearch.configured', 'elasticsearch.running')
 @when_not('elasticsearch.version.set')
 def get_set_elasticsearch_version():
     """Wait until we have the version to confirm
@@ -120,10 +123,10 @@ def blocked_due_to_problems():
 # Relation functions #
 ######################
 
-@when('client.connected', 'elasticsearch.configured')
+@when('client.connected', 'elasticsearch.installed')
 def connect_to_client(connected_clients):
     conf = config()
-    cluster_name = conf['cluster-name']
+    cluster_name = conf['cluster_name']
     port = conf['port']
     connected_clients.configure(port, cluster_name)
     clients = connected_clients.list_connected_clients_data
