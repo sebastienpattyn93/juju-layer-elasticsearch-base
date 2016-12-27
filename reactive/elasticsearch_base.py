@@ -60,7 +60,7 @@ def configure_elasticsearch():
     conf = config()
     path = '/etc/elasticsearch/elasticsearch.yml'
     utils.re_edit_in_place(path, {
-        r'#cluster.name: my-application': 'cluster.name: {0}'.format(conf['cluster-name']),
+        r'#cluster.name: my-application': 'cluster.name: {0}'.format(conf['cluster_name']),
     })
     utils.re_edit_in_place(path, {
         r'#network.host: 192.168.0.1': 'network.host: ["_site_", "_local_"]',
