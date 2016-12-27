@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 # pylint: disable=c0111,c0103,c0301
 import os
+import pwd
+import grp
+
 import subprocess as sp
-
-
 from subprocess import CalledProcessError
+
 from jujubigdata import utils
 from charms import apt #pylint: disable=E0611
 from charms.reactive import (
@@ -44,10 +46,9 @@ def install_elasticsearch():
     # setting a environment variable will need to be exported
     # otherwise it's only accesible in a new session
     if is_container():
-        with utils.environment_edit_in_place('/etc/environment') as env:
-            env['ES_SKIP_SET_KERNEL_PARAMETERS'] = 'true'
+        # with utils.environment_edit_in_place('/etc/environment') as env:
+        #     env['ES_SKIP_SET_KERNEL_PARAMETERS'] = 'true'
         os.environ['ES_SKIP_SET_KERNEL_PARAMETERS'] = "true"
-        sp.check_call(['. /etc/environment'], shell=True)
     apt.queue_install(['elasticsearch'])
 
 @when('apt.installed.elasticsearch')
@@ -56,6 +57,17 @@ def configure_elasticsearch():
     status_set('maintenance', 'Configuring elasticsearch')
     # check if Firewall has to be enabled
     init_fw()
+    conf = config()
+    path = '/etc/elasticsearch/elasticsearch.yml'
+    utils.re_edit_in_place(path, {
+        r'#cluster.name: my-application': 'cluster.name: {0}'.format(conf['cluster-name']),
+    })
+    utils.re_edit_in_place(path, {
+        r'#network.host: 192.168.0.1': 'network.host: ["_site_", "_local_"]',
+    })
+    uid = pwd.getpwnam("root").pw_uid
+    gid = grp.getgrnam("elasticsearch").gr_gid
+    os.chown(path, uid, gid)
     set_state('elasticsearch.installed')
     restart()
 

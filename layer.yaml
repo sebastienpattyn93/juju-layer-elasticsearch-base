@@ -8,4 +8,3 @@ options:
   apt:
     packages:
        - 'python3-pip'
-       - 'openjdk-8-jre-headless'
